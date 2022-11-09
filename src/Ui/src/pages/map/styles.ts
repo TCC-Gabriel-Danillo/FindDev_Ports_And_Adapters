@@ -1,5 +1,5 @@
 import { StyleSheet, Dimensions } from "react-native"
-import { PRIMARY } from '../../constants';
+import { CONST } from 'dev-ui';
 
 export const styles = StyleSheet.create({
     container: {
@@ -18,7 +18,7 @@ export const styles = StyleSheet.create({
       resizeMode: "contain",
       borderRadius: 50,
       borderWidth: 5,
-      borderColor: PRIMARY
+      borderColor: CONST.PRIMARY
     }, 
     calloutView: { width: 250 }, 
     calloutTitle: { marginLeft: 10, textAlign: "center" }, 

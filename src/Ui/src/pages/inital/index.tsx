@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { View, Image, ActivityIndicator, Alert } from 'react-native';
+import { View, Image, ActivityIndicator} from 'react-native';
 import { useUserService, useLocation } from '../../hooks';
-import { Text, Input, Button } from "../../components"
+import { Text, Input, Button, CONST } from "dev-ui"
 import devImg from "../../../assets/dev.png"
 import { styles } from './style';
-import { WHITE } from '../../constants';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationPages } from '../../navigation/config';
 
@@ -28,7 +27,7 @@ const InitialPage: React.FC = () => {
         
         <Input onChange={(value) => setUsername(value)} placeholder='Seu Usuário no Github'/>
         <Button onPress={handleButtonPress} style={styles.button}>  
-          {isLoading ? <ActivityIndicator color={WHITE}/> : "Entrar"}
+          {isLoading ? <ActivityIndicator color={CONST.WHITE}/> : "Entrar"}
         </Button>
     </View>
   )

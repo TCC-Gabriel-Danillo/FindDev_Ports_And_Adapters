@@ -1,12 +1,12 @@
 import { StyleSheet } from "react-native"
-import { LIGHT } from "../../constants"
+import { CONST } from "dev-ui"
 
 export const styles = StyleSheet.create({
     container: {
         flex: 1, 
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: LIGHT, 
+        backgroundColor: CONST.LIGHT, 
         paddingHorizontal: 20
     }, 
     button: {
