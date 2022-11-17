@@ -2,7 +2,7 @@ import { useCallback } from "react"
 import { View } from "react-native"
 import "./src/config/firebaseConfig"
 import { Routes } from "./src/navigation"
-import { LocationContextProvider, UserContextProvider } from "./src/context"
+import { AuthContextProvider, LocationContextProvider, UserContextProvider } from "./src/context"
 import {UserRepositoryImp, HttpRepositoryImp } from "@infrastructure/repositories"
 import { UserService } from "@domain/services"
 import { useCustomFonts } from "./src/hooks"
@@ -32,13 +32,15 @@ export default function App() {
       onLayout={onLayoutRootView}
       style={{flex: 1}}
     >
-      <LocationContextProvider>
-      <UserContextProvider
-        userService={userService}
-        httpRepository={httpRepository}>
-        <Routes />
-      </UserContextProvider>
-      </LocationContextProvider>
+      <AuthContextProvider>
+        <LocationContextProvider>
+          <UserContextProvider
+            userService={userService}
+            httpRepository={httpRepository}>
+            <Routes />
+          </UserContextProvider>
+        </LocationContextProvider>
+      </AuthContextProvider>
     </View>
   );
 }
