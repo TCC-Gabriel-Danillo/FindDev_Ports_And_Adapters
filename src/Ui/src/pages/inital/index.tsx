@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Image, ActivityIndicator, Alert } from 'react-native';
-import { useUserService, useLocation } from '../../hooks';
+import { useUserService, useLocation, useAuth } from '../../hooks';
 import { Text, Input, Button } from "../../components"
 import devImg from "../../../assets/dev.png"
 import { styles } from './style';
@@ -9,12 +9,16 @@ import { useNavigation } from '@react-navigation/native';
 import { NavigationPages } from '../../navigation/config';
 
 const InitialPage: React.FC = () => {
+    const [username, setUsername] = useState(''); 
+
     const navigation = useNavigation()
+    const { loginWithGithub } = useAuth()
     const { addUser, isLoading } = useUserService()
     const position = useLocation()
-    const [username, setUsername] = useState(''); 
     
+
     const handleButtonPress = async () => {
+        await loginWithGithub()
         const isUserAdded  = await addUser(username, position)
         if(isUserAdded) navigation.navigate(NavigationPages.map)
     }

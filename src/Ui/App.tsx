@@ -4,9 +4,10 @@ import "./src/config/firebaseConfig"
 import { Routes } from "./src/navigation"
 import { AuthContextProvider, LocationContextProvider, UserContextProvider } from "./src/context"
 import {UserRepositoryImp, HttpRepositoryImp } from "@infrastructure/repositories"
-import { UserService } from "@domain/services"
+import { UserService, AuthService } from "@domain/services"
 import { useCustomFonts } from "./src/hooks"
 import * as SplashScreen from 'expo-splash-screen';
+import { GITHUB_URL } from "./src/constants"
 
 
 SplashScreen.preventAutoHideAsync();
@@ -16,8 +17,9 @@ export default function App() {
 
   const userRepository = new UserRepositoryImp(); 
   const userService = new UserService(userRepository); 
-  const httpRepository = new HttpRepositoryImp("https://api.github.com/users"); 
-
+  const gitApi = new HttpRepositoryImp(GITHUB_URL.API_BASE_URL); 
+  const gitAuth = new HttpRepositoryImp(GITHUB_URL.AUTH_BASE_URL); 
+  const authService = new AuthService(gitAuth);
 
   const onLayoutRootView = useCallback(async () => {
     if (isFontLoaded) {
@@ -32,11 +34,15 @@ export default function App() {
       onLayout={onLayoutRootView}
       style={{flex: 1}}
     >
-      <AuthContextProvider>
+      <AuthContextProvider
+        authService={authService}
+      >
         <LocationContextProvider>
           <UserContextProvider
             userService={userService}
-            httpRepository={httpRepository}>
+            httpRepository={gitApi}
+            authService={authService}
+          >
             <Routes />
           </UserContextProvider>
         </LocationContextProvider>

@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect } from "react"
 import { Alert } from "react-native"
-import { Position, User, UserUseCase } from "@domain/entities"
+import { Position, User, UserUseCase, AuthUseCase } from "@domain/entities"
 import { GitRepository, GitUser } from "@infrastructure/dto"
 import { HttpRepository } from "@domain/repositories"
 
@@ -15,7 +15,7 @@ interface UserContextProps {
     children: JSX.Element
     userService: UserUseCase
     httpRepository: HttpRepository
-
+    authService: AuthUseCase
 }
 
 export const UserContext = createContext<IUserContext>({} as IUserContext); 
@@ -23,6 +23,7 @@ export const UserContext = createContext<IUserContext>({} as IUserContext);
 export function UserContextProvider({ 
     children, 
     userService, 
+    authService,
     httpRepository }: UserContextProps){
     
     const [users, setUsers] = useState<Array<User>>([]);
@@ -41,12 +42,14 @@ export function UserContextProvider({
         try {
             setIsLoadig(true)
 
+            const authHeader = authService.getOAuthHeader()
+
             const promises = [
-                httpRepository.get<GitUser>(`/${username}`),
-                httpRepository.get<Array<GitRepository>>(`/${username}/repos`)
+                httpRepository.get<GitUser>(`/users/${username}`, authHeader),
+                httpRepository.get<Array<GitRepository>>(`/users/${username}/repos`, authHeader),
             ]
 
-            const [responseUser, responseRepos] = await Promise.all(promises); 
+            const [responseUser, responseRepos,_] = await Promise.all(promises); 
             
             const user  = responseUser as unknown as GitUser
             const userRepos = responseRepos as unknown as Array<GitRepository>

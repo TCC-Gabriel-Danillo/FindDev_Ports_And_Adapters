@@ -8,17 +8,18 @@ import {
   GITHUB_URL,
 } from "../constants";
 import { makeRedirectUri, useAuthRequest } from "expo-auth-session";
-import { HttpRepositoryImp } from "@infrastructure/repositories";
 import * as WebBrowser from 'expo-web-browser';
+import { AuthService } from "@domain/services";
 
 WebBrowser.maybeCompleteAuthSession();
 
 interface AuthContextProviderProps {
   children: JSX.Element;
+  authService: AuthService;
 }
 
 interface IAuthContext {
-  loginWithGithub: () => void;
+  loginWithGithub: () => Promise<void>;
 }
 
 const discovery = {
@@ -29,8 +30,8 @@ const discovery = {
 
 export const AuthContext = createContext<IAuthContext>({} as IAuthContext);
 
-export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
-  const [request, response, promptAsync] = useAuthRequest(
+export const AuthContextProvider = ({ children, authService }: AuthContextProviderProps) => {
+  const [,, promptAsync] = useAuthRequest(
     {
       clientId: GIT_CLIENT_ID,
       scopes: ["identity"],
@@ -47,22 +48,13 @@ export const AuthContextProvider = ({ children }: AuthContextProviderProps) => {
     if (response?.type !== "success")
       throw new Error("Algo deu errado ao tentar logar.");
 
-    const {params} = response;
-
     const oAuthCredentials = {
-      ...params,
+      ...response.params,
       client_id: GIT_CLIENT_ID,
       client_secret: GIT_CLIENT_SECRET,
     };
     
-    const gitAuth = new HttpRepositoryImp(GITHUB_URL.AUTH_BASE_URL);
-
-    const tokenResponse = await gitAuth.post<any>("/access_token", oAuthCredentials, {
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-      }
-    });
+    await authService.setOAuthToken(oAuthCredentials)
 
   }, [promptAsync]);
 
