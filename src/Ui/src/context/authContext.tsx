@@ -6,11 +6,14 @@ import {
   GIT_REVOCATION_ENDPOINT,
   GIT_TOKEN_ENDPOINT,
   APP_SCHEME,
+  STORAGE_KEYS,
 } from "../constants";
 import { makeRedirectUri, useAuthRequest } from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 import { AuthService } from "@domain/services";
-import { UserCredential } from "@domain/entities";
+import { User, UserCredential } from "@domain/entities";
+import { LocalStorageRepository } from "@domain/repositories";
+import { usePersistentState } from "../hooks";
 
 
 WebBrowser.maybeCompleteAuthSession();
@@ -18,10 +21,13 @@ WebBrowser.maybeCompleteAuthSession();
 interface AuthContextProviderProps {
   children: JSX.Element;
   authService: AuthService;
+  localStorage: LocalStorageRepository
 }
 
 interface IAuthContext {
   signInWithGithub: () => Promise<UserCredential>;
+  isUserAuthenticated: boolean;
+  user: User;
 }
 
 const discovery = {
@@ -35,7 +41,10 @@ export const AuthContext = createContext<IAuthContext>({} as IAuthContext);
 export const AuthContextProvider = ({
   children,
   authService,
+  localStorage
 }: AuthContextProviderProps) => {
+  const { value: user } = usePersistentState<User>(STORAGE_KEYS.USERS, localStorage)
+
   const [,, promptAsync] = useAuthRequest(
     {
       clientId: GIT_CLIENT_ID,
@@ -66,7 +75,7 @@ export const AuthContextProvider = ({
   }, [promptAsync]);
 
   return (
-    <AuthContext.Provider value={{ signInWithGithub }}>
+    <AuthContext.Provider value={{ signInWithGithub, isUserAuthenticated: !!user?.id, user }}>
       {children}
     </AuthContext.Provider>
   );

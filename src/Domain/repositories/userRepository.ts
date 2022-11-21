@@ -1,7 +1,7 @@
 import { User } from "../entities/models";
 
 export interface UserRepository {
-    addUser(user: User): Promise<void>
+    createUser(user: User): Promise<void>
     getUser(username: string): Promise<User>
     listlUser(): Promise<Array<User>>
 }

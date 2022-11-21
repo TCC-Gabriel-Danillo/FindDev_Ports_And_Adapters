@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Image, ActivityIndicator } from 'react-native';
 import { useUserService, useLocation, useAuth } from '../../hooks';
 import { Text, Button } from "../../components"
@@ -12,20 +12,34 @@ const InitialPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false); 
 
     const navigation = useNavigation()
-    const { signInWithGithub } = useAuth()
-    const { addUser } = useUserService()
+    const { signInWithGithub, isUserAuthenticated, user } = useAuth()
+    const { createUser, updateUser } = useUserService()
     const position = useLocation()
     
-
-    const handleButtonPress = async () => {
+    useEffect(()=>{
       setIsLoading(true);
 
-      await signInWithGithub().then(async (userCredentials) => {
-        const isUserAdded  = await addUser(userCredentials, position)
-        if(isUserAdded) navigation.navigate(NavigationPages.map)
-      }).catch((e)=>{
-        console.error(e);
-      })
+      const isPositionVoid = !!Object.keys(position).length;
+      if(isUserAuthenticated && isPositionVoid) {
+        updateUser({...user, position}).then(()=>{
+          navigation.navigate(NavigationPages.map)
+          setIsLoading(false);
+        })
+      }
+
+    }, [isUserAuthenticated, position])
+
+    const signIn = async () => {
+      setIsLoading(true);
+      
+      if(!isUserAuthenticated) {
+        await signInWithGithub().then(async (userCredentials) => {
+          const isUserAdded  = await createUser(userCredentials, position)
+          if(isUserAdded) navigation.navigate(NavigationPages.map)
+        }).catch((e)=>{
+          console.error(e);
+        })
+      }
 
       setIsLoading(false);
     }
@@ -37,7 +51,7 @@ const InitialPage: React.FC = () => {
        
         <Image source={devImg} style={{width: 300, height: 300, resizeMode: "contain"}} />
         
-        <Button onPress={handleButtonPress} style={styles.button}>  
+        <Button onPress={signIn} style={styles.button}>  
           {isLoading ? <ActivityIndicator color={WHITE}/> : "Entrar com Github"}
         </Button>
     </View>

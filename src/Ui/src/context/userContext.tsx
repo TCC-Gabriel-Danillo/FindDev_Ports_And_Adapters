@@ -1,82 +1,110 @@
-import { createContext, useState, useEffect } from "react"
-import { Alert } from "react-native"
-import { Position, User, UserUseCase, AuthUseCase, UserCredential } from "@domain/entities"
-import { GitRepository, GitUser } from "@infrastructure/dto"
-import { HttpRepository } from "@domain/repositories"
+import { createContext, useState, useEffect } from "react";
+import { Alert } from "react-native";
+import {
+  Position,
+  User,
+  UserUseCase,
+  AuthUseCase,
+  UserCredential,
+} from "@domain/entities";
+import { GitRepository, GitUser } from "@infrastructure/dto";
+import { HttpRepository, LocalStorageRepository} from "@domain/repositories";
+import { usePersistentState } from "../hooks";
+import { STORAGE_KEYS } from "../constants";
 
 interface IUserContext {
-    users: Array<User>,
-    addUser: (allowedUser: UserCredential, position: Position) => Promise<boolean>
+  users: Array<User>;
+  createUser: (
+    allowedUser: UserCredential,
+    position: Position
+  ) => Promise<boolean>;
+  updateUser: (user: User) => Promise<void>
 }
 
 interface UserContextProps {
-    children: JSX.Element
-    userService: UserUseCase
-    httpRepository: HttpRepository
-    authService: AuthUseCase
+  children: JSX.Element;
+  userService: UserUseCase;
+  githubApi: HttpRepository;
+  localStorage: LocalStorageRepository;
+  authService: AuthUseCase;
 }
 
-export const UserContext = createContext<IUserContext>({} as IUserContext); 
+export const UserContext = createContext<IUserContext>({} as IUserContext);
 
-export function UserContextProvider({ 
-    children, 
-    userService, 
-    authService,
-    httpRepository }: UserContextProps){
-    
-    const [users, setUsers] = useState<Array<User>>([]);
-    
-    useEffect(() => {
-       (
-       async () => {
-            const response = await userService.listUsers()
-            setUsers(response)
-       }
-       )()
-    }, [])
+export function UserContextProvider({
+  children,
+  userService,
+  authService,
+  githubApi,
+  localStorage
+}: UserContextProps) {
+  const [users, setUsers] = useState<Array<User>>([]);
+  const { setPersistentState } = usePersistentState(STORAGE_KEYS.USERS, localStorage, {});
 
-    const addUser = async (allowedUser: UserCredential, position: Position): Promise<boolean> => {
-        try {
-                const authHeader = authService.getOAuthHeader()
+  useEffect(() => {
+    (async () => {
+      const response = await userService.listUsers();
+      setUsers(response);
+    })();
+  }, []);
 
-                const responseUser = await httpRepository.get<GitUser>(`/search/users?q=${allowedUser.user.email}`, authHeader)
-                const user = responseUser?.items[0];
+  const createUser = async (
+    allowedUser: UserCredential,
+    position: Position
+  ): Promise<boolean> => {
+    try {
+      const authHeader = authService.getOAuthHeader();
 
-                const userRepos = await httpRepository.get<Array<GitRepository>>(`/users/${user?.login}/repos`, authHeader)
-                const techs: Array<string> = []
+      const responseUser = (await githubApi.get<GitUser>(
+        `/search/users?q=${allowedUser.user.email}`,
+        authHeader
+      )) as GitUser;
 
-                userRepos?.forEach(repo => {
-                    const isNewTech = !techs.find((tech) => repo.language == tech)
-                    if(isNewTech && repo.language){
-                        techs.push(repo.language)
-                    }
-                })
+      const user = responseUser.items[0];
 
-                if (user) {
-                const newUser: User = {
-                    email: allowedUser.user.email || undefined , 
-                    id: user?.id, 
-                    phoroUrl: user.avatar_url, 
-                    techs: techs, 
-                    position: position, 
-                    username: user.login, 
-                    profileUrl: user.html_url
-                }
+      const userRepos = await githubApi.get<Array<GitRepository>>(
+        `/users/${user?.login}/repos`,
+        authHeader
+      );
+      const techs: Array<string> = [];
 
-                await userService.addUser(newUser)
-            }
-
-            return true
-        } catch(error) {
-            if(error instanceof Error) Alert.alert(error.message)
-            return false
+      userRepos?.forEach((repo) => {
+        const isNewTech = !techs.find((tech) => repo.language == tech);
+        if (isNewTech && repo.language) {
+          techs.push(repo.language);
         }
+      });
+
+      updateUser({
+        email: allowedUser.user.email || undefined,
+        id: user.id,
+        phoroUrl: user.avatar_url,
+        techs: techs,
+        position: position,
+        username: user.login,
+        profileUrl: user.html_url,
+      });
+
+      return true;
+
+    } catch (error) {
+      if (error instanceof Error) Alert.alert(error.message);
+      return false
     }
+  };
 
-    return (
-        <UserContext.Provider value={{ users, addUser }}>
-            {children}
-        </UserContext.Provider>
-    )
+  const updateUser =async (user: User) => {
+    const newUser: User = {
+      ...user
+    };
+    
+    setPersistentState(newUser);
+    await userService.createUser(newUser);
+  }
+
+  return (
+    <UserContext.Provider value={{ users, createUser, updateUser }}>
+      {children}
+    </UserContext.Provider>
+  );
 }
-

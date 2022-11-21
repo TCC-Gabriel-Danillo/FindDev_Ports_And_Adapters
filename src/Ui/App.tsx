@@ -3,7 +3,7 @@ import { View } from "react-native"
 import "./src/config/firebaseConfig"
 import { Routes } from "./src/navigation"
 import { AuthContextProvider, LocationContextProvider, UserContextProvider } from "./src/context"
-import {UserRepositoryImp, HttpRepositoryImp, AuthRepositoryImp } from "@infrastructure/repositories"
+import {UserRepositoryImp, HttpRepositoryImp, AuthRepositoryImp, LocalStorageImp} from "@infrastructure/repositories"
 import { UserService, AuthService } from "@domain/services"
 import { useCustomFonts } from "./src/hooks"
 import * as SplashScreen from 'expo-splash-screen';
@@ -15,6 +15,7 @@ SplashScreen.preventAutoHideAsync();
 export default function App() {
   const [isFontLoaded] = useCustomFonts()
 
+  const localStorage = new LocalStorageImp()
   const userRepository = new UserRepositoryImp(); 
   const authRepository = new AuthRepositoryImp();
 
@@ -39,12 +40,14 @@ export default function App() {
     >
       <AuthContextProvider
         authService={authService}
+        localStorage={localStorage}
       >
         <LocationContextProvider>
           <UserContextProvider
             userService={userService}
-            httpRepository={gitApi}
             authService={authService}
+            localStorage={localStorage}
+            githubApi={gitApi}
           >
             <Routes />
           </UserContextProvider>

@@ -9,7 +9,7 @@ export class UserRepositoryImp implements UserRepository {
         this.firestore = getFirestore()
     }
 
-    async addUser(user: User): Promise<void> {
+    async createUser(user: User): Promise<void> {
         await setDoc(doc(this.firestore, "users", user.username), user)
     }
     async getUser(username: string): Promise<User> {
