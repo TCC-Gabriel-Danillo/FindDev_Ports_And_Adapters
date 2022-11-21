@@ -5,11 +5,13 @@ import {
   GIT_CLIENT_SECRET,
   GIT_REVOCATION_ENDPOINT,
   GIT_TOKEN_ENDPOINT,
-  GITHUB_URL,
+  APP_SCHEME,
 } from "../constants";
 import { makeRedirectUri, useAuthRequest } from "expo-auth-session";
-import * as WebBrowser from 'expo-web-browser';
+import * as WebBrowser from "expo-web-browser";
 import { AuthService } from "@domain/services";
+import { UserCredential } from "@domain/entities";
+
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -19,7 +21,7 @@ interface AuthContextProviderProps {
 }
 
 interface IAuthContext {
-  loginWithGithub: () => Promise<void>;
+  signInWithGithub: () => Promise<UserCredential>;
 }
 
 const discovery = {
@@ -30,36 +32,41 @@ const discovery = {
 
 export const AuthContext = createContext<IAuthContext>({} as IAuthContext);
 
-export const AuthContextProvider = ({ children, authService }: AuthContextProviderProps) => {
+export const AuthContextProvider = ({
+  children,
+  authService,
+}: AuthContextProviderProps) => {
   const [,, promptAsync] = useAuthRequest(
     {
       clientId: GIT_CLIENT_ID,
       scopes: ["identity"],
       redirectUri: makeRedirectUri({
-        scheme: 'APP_SCHEME'
+        scheme: APP_SCHEME,
       }),
     },
     discovery
   );
 
-  const loginWithGithub = useCallback(async () => {
+  const signInWithGithub = useCallback(async () => {
     const response = await promptAsync();
-  
+    
     if (response?.type !== "success")
-      throw new Error("Algo deu errado ao tentar logar.");
+    throw new Error("Algo deu errado ao tentar logar.");
+    
 
     const oAuthCredentials = {
       ...response.params,
       client_id: GIT_CLIENT_ID,
       client_secret: GIT_CLIENT_SECRET,
     };
-    
-    await authService.setOAuthToken(oAuthCredentials)
 
+    await authService.setOAuthToken(oAuthCredentials);
+    
+    return authService.signInWithCredentials();
   }, [promptAsync]);
 
   return (
-    <AuthContext.Provider value={{ loginWithGithub }}>
+    <AuthContext.Provider value={{ signInWithGithub }}>
       {children}
     </AuthContext.Provider>
   );

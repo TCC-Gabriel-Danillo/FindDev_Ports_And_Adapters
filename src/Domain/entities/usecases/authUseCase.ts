@@ -1,3 +1,7 @@
+import { UserCredential as UserCredentialGithub } from "../../../ui/node_modules/@firebase/auth";
+
+export interface UserCredential extends UserCredentialGithub {}
+
 export interface Credentials {
   client_id: string;
   client_secret: string;
@@ -17,4 +21,5 @@ type oAuthHeader = {
 export interface AuthUseCase {
   setOAuthToken: (credentials: Credentials) => void;
   getOAuthHeader: () => oAuthHeader;
+  getOAuthToken: () => string|undefined;
 }
