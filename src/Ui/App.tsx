@@ -7,6 +7,7 @@ import {UserRepositoryImp, HttpRepositoryImp } from "@infrastructure/repositorie
 import { UserService } from "@domain/services"
 import { useCustomFonts } from "./src/hooks"
 import * as SplashScreen from 'expo-splash-screen';
+import { geohashGeneratorHelper } from "src/helpers/geohashGeneratorHelper"
 
 
 SplashScreen.preventAutoHideAsync();
@@ -35,7 +36,8 @@ export default function App() {
       <LocationContextProvider>
       <UserContextProvider
         userService={userService}
-        httpRepository={httpRepository}>
+        httpRepository={httpRepository}
+        geohashGenerator={geohashGeneratorHelper}>
         <Routes />
       </UserContextProvider>
       </LocationContextProvider>

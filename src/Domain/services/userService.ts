@@ -1,4 +1,4 @@
-import { User } from "../entities/models";
+import { ListUserParams, User } from "../entities/models";
 import { UserUseCase } from "../entities/usecases";
 import { UserRepository } from "../repositories";
 
@@ -6,7 +6,7 @@ export class UserService implements UserUseCase {
     constructor(
         private userRepository:UserRepository, 
     ){}
-        
+
     getUser(username: string): Promise<User> {
         return this.userRepository.getUser(username);
     }
@@ -15,8 +15,8 @@ export class UserService implements UserUseCase {
         return this.userRepository.addUser(user); 
     }
 
-    listUsers(): Promise<User[]> {
-        return this.userRepository.listlUser();
+    listUsers(listUserParams: ListUserParams): Promise<User[]> {
+        return this.userRepository.listUsers(listUserParams);
     }
 
 }
