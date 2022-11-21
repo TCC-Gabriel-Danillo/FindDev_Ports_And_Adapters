@@ -4,6 +4,7 @@ import "./src/config/firebaseConfig"
 import { Routes } from "./src/navigation"
 import { AuthContextProvider, LocationContextProvider, UserContextProvider } from "./src/context"
 import {UserRepositoryImp, HttpRepositoryImp, AuthRepositoryImp, LocalStorageImp} from "@infrastructure/repositories"
+import { geohashGeneratorHelper } from "./src/helpers/geohashGeneratorHelper"
 import { UserService, AuthService } from "@domain/services"
 import { useCustomFonts } from "./src/hooks"
 import * as SplashScreen from 'expo-splash-screen';
@@ -48,6 +49,7 @@ export default function App() {
             authService={authService}
             localStorage={localStorage}
             githubApi={gitApi}
+            geohashGenerator={geohashGeneratorHelper}
           >
             <Routes />
           </UserContextProvider>

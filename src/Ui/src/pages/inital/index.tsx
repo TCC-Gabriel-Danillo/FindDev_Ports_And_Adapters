@@ -17,10 +17,9 @@ const InitialPage: React.FC = () => {
     const position = useLocation()
     
     useEffect(()=>{
-      setIsLoading(true);
-
       const isPositionVoid = !!Object.keys(position).length;
       if(isUserAuthenticated && isPositionVoid) {
+        setIsLoading(true);
         updateUser({...user, position}).then(()=>{
           navigation.navigate(NavigationPages.map)
           setIsLoading(false);

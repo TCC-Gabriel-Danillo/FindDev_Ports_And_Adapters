@@ -6,6 +6,7 @@ import {
   UserUseCase,
   AuthUseCase,
   UserCredential,
+  ListUserParams
 } from "@domain/entities";
 import { GitRepository, GitUser } from "@infrastructure/dto";
 import { HttpRepository, LocalStorageRepository} from "@domain/repositories";
@@ -13,12 +14,12 @@ import { usePersistentState } from "../hooks";
 import { STORAGE_KEYS } from "../constants";
 
 interface IUserContext {
-  users: Array<User>;
   createUser: (
     allowedUser: UserCredential,
-    position: Position
-  ) => Promise<boolean>;
-  updateUser: (user: User) => Promise<void>
+    position: Position,
+    ) => Promise<boolean>;
+  listUsers: (listUserParams: ListUserParams) => Promise<User[]>;
+  updateUser: (user: User) => Promise<void>;
 }
 
 interface UserContextProps {
@@ -26,6 +27,7 @@ interface UserContextProps {
   userService: UserUseCase;
   githubApi: HttpRepository;
   localStorage: LocalStorageRepository;
+  geohashGenerator: Function
   authService: AuthUseCase;
 }
 
@@ -36,17 +38,11 @@ export function UserContextProvider({
   userService,
   authService,
   githubApi,
-  localStorage
+  localStorage,
+  geohashGenerator
 }: UserContextProps) {
-  const [users, setUsers] = useState<Array<User>>([]);
   const { setPersistentState } = usePersistentState(STORAGE_KEYS.USERS, localStorage, {});
 
-  useEffect(() => {
-    (async () => {
-      const response = await userService.listUsers();
-      setUsers(response);
-    })();
-  }, []);
 
   const createUser = async (
     allowedUser: UserCredential,
@@ -83,7 +79,7 @@ export function UserContextProvider({
         position: position,
         username: user.login,
         profileUrl: user.html_url,
-      });
+      } as User);
 
       return true;
 
@@ -95,15 +91,21 @@ export function UserContextProvider({
 
   const updateUser =async (user: User) => {
     const newUser: User = {
-      ...user
+      ...user,
+      geohash: geohashGenerator(user.position)
     };
-    
+
     setPersistentState(newUser);
     await userService.createUser(newUser);
   }
 
+  const listUsers = async (listUserParams: ListUserParams) => {
+    const response = await userService.listUsers(listUserParams)
+    return response;
+  };
+
   return (
-    <UserContext.Provider value={{ users, createUser, updateUser }}>
+    <UserContext.Provider value={{ createUser, updateUser, listUsers }}>
       {children}
     </UserContext.Provider>
   );
