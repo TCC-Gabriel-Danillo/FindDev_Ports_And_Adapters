@@ -3,7 +3,7 @@ import { View } from "react-native"
 import "./src/config/firebaseConfig"
 import { Routes } from "./src/navigation"
 import { AuthContextProvider, LocationContextProvider, UserContextProvider } from "./src/context"
-import {UserRepositoryImp, HttpRepositoryImp } from "@infrastructure/repositories"
+import {UserRepositoryImp, HttpRepositoryImp, AuthRepositoryImp } from "@infrastructure/repositories"
 import { UserService, AuthService } from "@domain/services"
 import { useCustomFonts } from "./src/hooks"
 import * as SplashScreen from 'expo-splash-screen';
@@ -16,10 +16,13 @@ export default function App() {
   const [isFontLoaded] = useCustomFonts()
 
   const userRepository = new UserRepositoryImp(); 
-  const userService = new UserService(userRepository); 
+  const authRepository = new AuthRepositoryImp();
+
   const gitApi = new HttpRepositoryImp(GITHUB_URL.API_BASE_URL); 
   const gitAuth = new HttpRepositoryImp(GITHUB_URL.AUTH_BASE_URL); 
-  const authService = new AuthService(gitAuth);
+
+  const userService = new UserService(userRepository); 
+  const authService = new AuthService(gitAuth, authRepository);
 
   const onLayoutRootView = useCallback(async () => {
     if (isFontLoaded) {

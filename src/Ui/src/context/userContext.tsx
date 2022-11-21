@@ -1,14 +1,12 @@
 import { createContext, useState, useEffect } from "react"
 import { Alert } from "react-native"
-import { Position, User, UserUseCase, AuthUseCase } from "@domain/entities"
+import { Position, User, UserUseCase, AuthUseCase, UserCredential } from "@domain/entities"
 import { GitRepository, GitUser } from "@infrastructure/dto"
 import { HttpRepository } from "@domain/repositories"
 
-
 interface IUserContext {
     users: Array<User>,
-    isLoading: boolean, 
-    addUser: (username: string, position: Position) => Promise<boolean>
+    addUser: (allowedUser: UserCredential, position: Position) => Promise<boolean>
 }
 
 interface UserContextProps {
@@ -27,7 +25,6 @@ export function UserContextProvider({
     httpRepository }: UserContextProps){
     
     const [users, setUsers] = useState<Array<User>>([]);
-    const [isLoading, setIsLoadig] = useState(false); 
     
     useEffect(() => {
        (
@@ -38,54 +35,46 @@ export function UserContextProvider({
        )()
     }, [])
 
-    const addUser = async (username: string, position: Position): Promise<boolean> => {
+    const addUser = async (allowedUser: UserCredential, position: Position): Promise<boolean> => {
         try {
-            setIsLoadig(true)
+                const authHeader = authService.getOAuthHeader()
 
-            const authHeader = authService.getOAuthHeader()
+                const responseUser = await httpRepository.get<GitUser>(`/search/users?q=${allowedUser.user.email}`, authHeader)
+                const user = responseUser?.items[0];
 
-            const promises = [
-                httpRepository.get<GitUser>(`/users/${username}`, authHeader),
-                httpRepository.get<Array<GitRepository>>(`/users/${username}/repos`, authHeader),
-            ]
+                const userRepos = await httpRepository.get<Array<GitRepository>>(`/users/${user?.login}/repos`, authHeader)
+                const techs: Array<string> = []
 
-            const [responseUser, responseRepos,_] = await Promise.all(promises); 
-            
-            const user  = responseUser as unknown as GitUser
-            const userRepos = responseRepos as unknown as Array<GitRepository>
+                userRepos?.forEach(repo => {
+                    const isNewTech = !techs.find((tech) => repo.language == tech)
+                    if(isNewTech && repo.language){
+                        techs.push(repo.language)
+                    }
+                })
 
-            const techs: Array<string> = []
-
-            userRepos.forEach(repo => {
-                const isNewTech = !techs.find((tech) => repo.language == tech)
-                if(isNewTech && repo.language){
-                    techs.push(repo.language)
+                if (user) {
+                const newUser: User = {
+                    email: allowedUser.user.email || undefined , 
+                    id: user?.id, 
+                    phoroUrl: user.avatar_url, 
+                    techs: techs, 
+                    position: position, 
+                    username: user.login, 
+                    profileUrl: user.html_url
                 }
-            })
 
-            const newUser: User = {
-                email: user.email, 
-                id: user.id, 
-                phoroUrl: user.avatar_url, 
-                techs: techs, 
-                position: position, 
-                username: user.login, 
-                profileUrl: user.html_url
+                await userService.addUser(newUser)
             }
 
-            await userService.addUser(newUser)
-
-            setIsLoadig(false)
             return true
         } catch(error) {
-            setIsLoadig(false)
             if(error instanceof Error) Alert.alert(error.message)
             return false
         }
     }
 
     return (
-        <UserContext.Provider value={{ users, isLoading, addUser }}>
+        <UserContext.Provider value={{ users, addUser }}>
             {children}
         </UserContext.Provider>
     )

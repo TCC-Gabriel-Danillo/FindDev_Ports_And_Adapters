@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { View, Image, ActivityIndicator, Alert } from 'react-native';
+import { View, Image, ActivityIndicator } from 'react-native';
 import { useUserService, useLocation, useAuth } from '../../hooks';
-import { Text, Input, Button } from "../../components"
+import { Text, Button } from "../../components"
 import devImg from "../../../assets/dev.png"
 import { styles } from './style';
 import { WHITE } from '../../constants';
@@ -9,18 +9,25 @@ import { useNavigation } from '@react-navigation/native';
 import { NavigationPages } from '../../navigation/config';
 
 const InitialPage: React.FC = () => {
-    const [username, setUsername] = useState(''); 
+    const [isLoading, setIsLoading] = useState(false); 
 
     const navigation = useNavigation()
-    const { loginWithGithub } = useAuth()
-    const { addUser, isLoading } = useUserService()
+    const { signInWithGithub } = useAuth()
+    const { addUser } = useUserService()
     const position = useLocation()
     
 
     const handleButtonPress = async () => {
-        await loginWithGithub()
-        const isUserAdded  = await addUser(username, position)
+      setIsLoading(true);
+
+      await signInWithGithub().then(async (userCredentials) => {
+        const isUserAdded  = await addUser(userCredentials, position)
         if(isUserAdded) navigation.navigate(NavigationPages.map)
+      }).catch((e)=>{
+        console.error(e);
+      })
+
+      setIsLoading(false);
     }
 
   return(
@@ -30,9 +37,8 @@ const InitialPage: React.FC = () => {
        
         <Image source={devImg} style={{width: 300, height: 300, resizeMode: "contain"}} />
         
-        <Input onChange={(value) => setUsername(value)} placeholder='Seu Usuário no Github'/>
         <Button onPress={handleButtonPress} style={styles.button}>  
-          {isLoading ? <ActivityIndicator color={WHITE}/> : "Entrar"}
+          {isLoading ? <ActivityIndicator color={WHITE}/> : "Entrar com Github"}
         </Button>
     </View>
   )
