@@ -1,6 +1,5 @@
-import { Credentials } from "../entities/usecases/authUseCase";
+import { UserCredential } from "@domain/entities";
 
 export interface AuthRepository {
-  setOAuthToken: (credentials: Credentials) => void;
-  getOAuthHeader: () => any;
+  signInWithCredentials: (token: string) => Promise<UserCredential>;
 }
