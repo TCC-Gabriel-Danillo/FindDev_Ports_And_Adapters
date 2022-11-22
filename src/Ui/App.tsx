@@ -1,14 +1,14 @@
 import { useCallback } from "react"
-import { View } from "react-native"
+import { StatusBar, View } from "react-native"
 import "./src/config/firebaseConfig"
 import { Routes } from "./src/navigation"
 import { AuthContextProvider, LocationContextProvider, UserContextProvider } from "./src/context"
 import {UserRepositoryImp, HttpRepositoryImp, AuthRepositoryImp, LocalStorageImp} from "@infrastructure/repositories"
 import { geohashGeneratorHelper } from "./src/helpers/geohashGeneratorHelper"
 import { UserService, AuthService } from "@domain/services"
-import { useCustomFonts } from "./src/hooks"
+import { useAuthRequest, useCustomFonts } from "./src/hooks"
 import * as SplashScreen from 'expo-splash-screen';
-import { GITHUB_URL } from "./src/constants"
+import { GITHUB_URL, PRIMARY } from "./src/constants"
 
 
 SplashScreen.preventAutoHideAsync();
@@ -31,31 +31,37 @@ export default function App() {
       await SplashScreen.hideAsync();
     }
   }, [isFontLoaded]);
+  
+  const { promptAsync } = useAuthRequest()
 
   if(!isFontLoaded) return
 
   return (
-    <View
-      onLayout={onLayoutRootView}
-      style={{flex: 1}}
-    >
-      <AuthContextProvider
-        authService={authService}
-        localStorage={localStorage}
+    <>
+      <StatusBar backgroundColor={PRIMARY}/>
+      <View
+        onLayout={onLayoutRootView}
+        style={{flex: 1}}
       >
-        <LocationContextProvider>
-          <UserContextProvider
-            userService={userService}
-            authService={authService}
-            localStorage={localStorage}
-            githubApi={gitApi}
-            geohashGenerator={geohashGeneratorHelper}
-          >
-            <Routes />
-          </UserContextProvider>
-        </LocationContextProvider>
-      </AuthContextProvider>
-    </View>
+        <AuthContextProvider
+          authService={authService}
+          localStorage={localStorage}
+          promptAsync={promptAsync}
+        >
+          <LocationContextProvider>
+            <UserContextProvider
+              userService={userService}
+              authService={authService}
+              localStorage={localStorage}
+              githubApi={gitApi}
+              geohashGenerator={geohashGeneratorHelper}
+            >
+              <Routes />
+            </UserContextProvider>
+          </LocationContextProvider>
+        </AuthContextProvider>
+      </View>
+    </>
   );
 }
 
