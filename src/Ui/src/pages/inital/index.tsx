@@ -18,7 +18,7 @@ const InitialPage: React.FC = () => {
     
     useEffect(()=>{
       const isPositionVoid = !!Object.keys(position).length;
-      if(isUserAuthenticated && isPositionVoid) {
+      if(isUserAuthenticated && isPositionVoid && user) {
         setIsLoading(true);
         updateUser({...user, position}).then(()=>{
           navigation.navigate(NavigationPages.map)
@@ -32,12 +32,9 @@ const InitialPage: React.FC = () => {
       setIsLoading(true);
       
       if(!isUserAuthenticated) {
-        await signInWithGithub().then(async (userCredentials) => {
-          const isUserAdded  = await createUser(userCredentials, position)
-          if(isUserAdded) navigation.navigate(NavigationPages.map)
-        }).catch((e)=>{
-          console.error(e);
-        })
+        const userCredentials = await signInWithGithub();
+        const isUserAdded  = await createUser(userCredentials, position);
+        if(isUserAdded) navigation.navigate(NavigationPages.map)
       }
 
       setIsLoading(false);

@@ -35,8 +35,8 @@ export default function Map() {
           latitudeDelta: 0.05, 
           longitudeDelta: 0.05,
         }}
-        maxZoomLevel={17}
-        minZoomLevel={14.5}
+        maxZoomLevel={14}
+        minZoomLevel={3.5}
       >
         {
           users.map(user => {

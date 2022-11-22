@@ -22,7 +22,7 @@ export const useFilterUsers = ({position, callback}: useFilterUsersType) => {
     }    
     
     callback(listUserParams).then(response => {
-      setUsers(response)
+      if(response.length !== 0) setUsers(response)
     })
       
   },[position])
