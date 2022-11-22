@@ -23,6 +23,7 @@ interface AuthContextProviderProps {
 interface IAuthContext {
   signInWithGithub: () => Promise<UserCredential>;
   isUserAuthenticated: boolean;
+  signOut: () => void;
   user?: User;
 }
 
@@ -34,7 +35,7 @@ export const AuthContextProvider = ({
   localStorage,
   promptAsync
 }: AuthContextProviderProps) => {
-  const { value: user } = usePersistentState<User>(STORAGE_KEYS.USERS, localStorage)
+  const { value: user, setPersistentState } = usePersistentState<User>(STORAGE_KEYS.USERS, localStorage)
 
   const signInWithGithub = useCallback(async () => {
     const response = await promptAsync();
@@ -53,8 +54,12 @@ export const AuthContextProvider = ({
     return authService.signInWithCredentials();
   }, [promptAsync]);
 
+  const signOut = () => {
+    setPersistentState({} as User);
+  };
+
   return (
-    <AuthContext.Provider value={{ signInWithGithub, isUserAuthenticated: !!user?.id, user }}>
+    <AuthContext.Provider value={{ signInWithGithub, isUserAuthenticated: !!user?.id, user, signOut }}>
       {children}
     </AuthContext.Provider>
   );

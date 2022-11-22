@@ -1,19 +1,24 @@
 import React, { useState } from 'react';
 import MapView, { Marker, Callout } from 'react-native-maps';
 import { Image, View } from 'react-native';
-import { useLocation, useUserService, useFilterUsers } from '../../hooks';
-import { Text } from '../../components';
+import { useLocation, useUserService, useFilterUsers, useAuth } from '../../hooks';
+import { Button, Text } from '../../components';
 import makerImg from "../../../assets/marker.png"
 import { styles } from "./styles"
 import { Position, User } from '@domain/entities';
 import * as Linking from 'expo-linking';
-
+import { useNavigation } from '@react-navigation/native';
+import { NavigationPages } from '../../navigation/config';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { WHITE } from '../../constants';
 
 export default function Map() {
   const [ mapPosition, setMapPosition ] = useState<Position | undefined>(undefined)
 
-  const position = useLocation()
+  const navigation = useNavigation()
   const { listUsers } = useUserService()
+  const { signOut } = useAuth()
+  const position = useLocation()
 
   const { users } = useFilterUsers({position: mapPosition || position, callback: listUsers})
   
@@ -21,6 +26,10 @@ export default function Map() {
      await Linking.openURL(user.profileUrl);
   }
 
+  const signOutUser = () => {
+    signOut();
+    navigation.navigate(NavigationPages.inital)
+  }
 
   return (
     <View style={styles.container}>
@@ -64,8 +73,10 @@ export default function Map() {
             )
           })
         }
-      
       </MapView>
+      <Button onPress={signOutUser} style={styles.logoutButton}>
+        <Ionicons name="md-log-out" size={32} color={WHITE} />
+      </Button>
     </View>
   );
 }
