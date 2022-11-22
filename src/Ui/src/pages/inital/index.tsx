@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { View, Image, ActivityIndicator, Alert } from 'react-native';
-import { useUserService, useLocation } from '../../hooks';
-import { Text, Input, Button } from "../../components"
+import { useState, useEffect } from 'react';
+import { View, Image, ActivityIndicator } from 'react-native';
+import { useUserService, useLocation, useAuth } from '../../hooks';
+import { Text, Button } from "../../components"
 import devImg from "../../../assets/dev.png"
 import { styles } from './style';
 import { WHITE } from '../../constants';
@@ -9,14 +9,35 @@ import { useNavigation } from '@react-navigation/native';
 import { NavigationPages } from '../../navigation/config';
 
 const InitialPage: React.FC = () => {
+    const [isLoading, setIsLoading] = useState(false); 
+
     const navigation = useNavigation()
-    const { addUser, isLoading } = useUserService()
+    const { signInWithGithub, isUserAuthenticated, user } = useAuth()
+    const { createUser, updateUser } = useUserService()
     const position = useLocation()
-    const [username, setUsername] = useState(''); 
     
-    const handleButtonPress = async () => {
-        const isUserAdded  = await addUser(username, position)
+    useEffect(()=>{
+      const isPositionVoid = !!Object.keys(position).length;
+      if(isUserAuthenticated && isPositionVoid && user) {
+        setIsLoading(true);
+        updateUser({...user, position}).then(()=>{
+          navigation.navigate(NavigationPages.map)
+          setIsLoading(false);
+        })
+      }
+
+    }, [isUserAuthenticated, position])
+
+    const signIn = async () => {
+      setIsLoading(true);
+      
+      if(!isUserAuthenticated) {
+        const userCredentials = await signInWithGithub();
+        const isUserAdded  = await createUser(userCredentials, position);
         if(isUserAdded) navigation.navigate(NavigationPages.map)
+      }
+
+      setIsLoading(false);
     }
 
   return(
@@ -26,9 +47,8 @@ const InitialPage: React.FC = () => {
        
         <Image source={devImg} style={{width: 300, height: 300, resizeMode: "contain"}} />
         
-        <Input onChange={(value) => setUsername(value)} placeholder='Seu Usuário no Github'/>
-        <Button onPress={handleButtonPress} style={styles.button}>  
-          {isLoading ? <ActivityIndicator color={WHITE}/> : "Entrar"}
+        <Button onPress={signIn} style={styles.button}>  
+          {isLoading ? <ActivityIndicator color={WHITE}/> : "Entrar com Github"}
         </Button>
     </View>
   )

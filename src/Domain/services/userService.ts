@@ -11,8 +11,8 @@ export class UserService implements UserUseCase {
         return this.userRepository.getUser(username);
     }
 
-    addUser(user: User): Promise<void> {
-        return this.userRepository.addUser(user); 
+    createUser(user: User): Promise<void> {
+        return this.userRepository.createUser(user); 
     }
 
     listUsers(listUserParams: ListUserParams): Promise<User[]> {

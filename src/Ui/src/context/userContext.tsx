@@ -1,86 +1,112 @@
-import { createContext, useState } from "react"
-import { Alert } from "react-native"
-import { ListUserParams, Position, User, UserUseCase } from "@domain/entities"
-import { GitRepository, GitUser } from "@infrastructure/dto"
-import { HttpRepository } from "@domain/repositories"
+import { createContext, useState, useEffect } from "react";
+import { Alert } from "react-native";
+import {
+  Position,
+  User,
+  UserUseCase,
+  AuthUseCase,
+  UserCredential,
+  ListUserParams
+} from "@domain/entities";
+import { GitRepository, GitUser } from "@infrastructure/dto";
+import { HttpRepository, LocalStorageRepository} from "@domain/repositories";
+import { usePersistentState } from "../hooks";
+import { STORAGE_KEYS } from "../constants";
 
 interface IUserContext {
-    isLoading: boolean, 
-    addUser: (username: string, position: Position) => Promise<boolean>
-    listUsers: (listUserParams: ListUserParams) => Promise<User[]>
+  createUser: (
+    allowedUser: UserCredential,
+    position: Position,
+    ) => Promise<boolean>;
+  listUsers: (listUserParams: ListUserParams) => Promise<User[]>;
+  updateUser: (user: User) => Promise<void>;
 }
 
 interface UserContextProps {
-    children: JSX.Element
-    userService: UserUseCase
-    httpRepository: HttpRepository
-    geohashGeneratorHelper: Function
+  children: JSX.Element;
+  userService: UserUseCase;
+  githubApi: HttpRepository;
+  localStorage: LocalStorageRepository;
+  geohashGenerator: Function
+  authService: AuthUseCase;
 }
 
-export const UserContext = createContext<IUserContext>({} as IUserContext); 
+export const UserContext = createContext<IUserContext>({} as IUserContext);
 
-export function UserContextProvider({ 
-    children, 
-    userService, 
-    httpRepository,
-    geohashForLocation }: UserContextProps){
-    
-    const [isLoading, setIsLoadig] = useState(false); 
-    
-    const addUser = async (username: string, position: Position): Promise<boolean> => {
-        try {
-            setIsLoadig(true)
+export function UserContextProvider({
+  children,
+  userService,
+  authService,
+  githubApi,
+  localStorage,
+  geohashGenerator
+}: UserContextProps) {
+  const { setPersistentState } = usePersistentState(STORAGE_KEYS.USERS, localStorage, {});
 
-            const promises = [
-                httpRepository.get<GitUser>(`/${username}`),
-                httpRepository.get<Array<GitRepository>>(`/${username}/repos`)
-            ]
 
-            const [responseUser, responseRepos] = await Promise.all(promises); 
-            
-            const user  = responseUser as unknown as GitUser
-            const userRepos = responseRepos as unknown as Array<GitRepository>
+  const createUser = async (
+    allowedUser: UserCredential,
+    position: Position
+  ): Promise<boolean> => {
+    try {
+      const authHeader = authService.getOAuthHeader();
 
-            const techs: Array<string> = []
+      const responseUser = (await githubApi.get<GitUser>(
+        `/search/users?q=${allowedUser.user.email}`,
+        authHeader
+      )) as GitUser;
 
-            userRepos.forEach(repo => {
-                const isNewTech = !techs.find((tech) => repo.language == tech)
-                if(isNewTech && repo.language){
-                    techs.push(repo.language)
-                }
-            })
+      const user = responseUser.items[0];
 
-            const newUser: User = {
-                email: user.email, 
-                id: user.id, 
-                phoroUrl: user.avatar_url, 
-                techs: techs, 
-                position: position, 
-                username: user.login, 
-                profileUrl: user.html_url,
-                geohash: geohashForLocation([position.latitude, position.longitude])
-            }
+      const userRepos = await githubApi.get<Array<GitRepository>>(
+        `/users/${user?.login}/repos`,
+        authHeader
+      );
+      const techs: Array<string> = [];
 
-            await userService.addUser(newUser)
-
-            setIsLoadig(false)
-            return true
-        } catch(error) {
-            setIsLoadig(false)
-            if(error instanceof Error) Alert.alert(error.message)
-            return false
+      userRepos?.forEach((repo) => {
+        const isNewTech = !techs.find((tech) => repo.language == tech);
+        if (isNewTech && repo.language) {
+          techs.push(repo.language);
         }
-    }
+      });
 
-    const listUsers = async (listUserParams: ListUserParams) => {
-        const response = await userService.listUsers(listUserParams)
-        return response;
+      updateUser({
+        email: allowedUser.user.email || undefined,
+        id: user.id,
+        phoroUrl: user.avatar_url,
+        techs: techs,
+        position: position,
+        username: user.login,
+        profileUrl: user.html_url,
+      } as User);
+
+      return true;
+
+    } catch (error) {
+      if (error instanceof Error) Alert.alert(error.message);
+      return false
+    }
+  };
+
+  const updateUser =async (user: User) => {
+    const newUser: User = {
+      ...user,
+      geohash: geohashGenerator(user.position)
     };
 
-    return (
-        <UserContext.Provider value={{ listUsers, isLoading, addUser }}>
-            {children}
-        </UserContext.Provider>
-    )
-}
+    setPersistentState(newUser);
+    await userService.createUser(newUser);
+  }
 
+  const listUsers = async (listUserParams: ListUserParams) => {
+    const response = await userService.listUsers(listUserParams)
+    return response;
+  };
+
+  return (
+    <UserContext.Provider value={{ createUser, updateUser, listUsers }}>
+      {children}
+    </UserContext.Provider>
+  );
+}

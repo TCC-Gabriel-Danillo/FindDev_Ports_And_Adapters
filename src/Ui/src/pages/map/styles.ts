@@ -20,6 +20,15 @@ export const styles = StyleSheet.create({
       borderWidth: 5,
       borderColor: PRIMARY
     }, 
+    logoutButton: { 
+      position:"absolute", 
+      width: 64, 
+      height: 64, 
+      borderRadius:32, 
+      justifyContent: 'center', 
+      bottom: '5%', 
+      right:'5%'
+    },
     calloutView: { width: 250 }, 
     calloutTitle: { marginLeft: 10, textAlign: "center" }, 
     calloutContent: { fontSize: 12 }, 
