@@ -48,7 +48,7 @@ export const AuthContextProvider = ({
       client_secret: GIT_CLIENT_SECRET,
     };
 
-    authService.setOAuthToken(oAuthCredentials);
+    await authService.setOAuthToken(oAuthCredentials);
     
     return authService.signInWithCredentials();
   }, [promptAsync]);
