@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useState } from 'react';
 import MapView, { Marker, Callout } from 'react-native-maps';
 import { Image, View } from 'react-native';
 import { useLocation, useUserService, useFilterUsers, useAuth } from '../../hooks';
@@ -15,10 +15,10 @@ import { WHITE } from '../../constants';
 export default function Map() {
   const [ mapPosition, setMapPosition ] = useState<Position | undefined>(undefined)
 
-  const navigation = useNavigation()
+  const {navigate} = useNavigation()
+  const { position } = useLocation()
   const { listUsers } = useUserService()
   const { signOut } = useAuth()
-  const position = useLocation()
 
   const { users } = useFilterUsers({position: mapPosition || position, callback: listUsers})
   
@@ -28,7 +28,7 @@ export default function Map() {
 
   const signOutUser = () => {
     signOut();
-    navigation.navigate(NavigationPages.inital)
+    navigate(NavigationPages.inital)
   }
 
   return (
@@ -39,8 +39,8 @@ export default function Map() {
           setMapPosition({latitude, longitude})
         }}
         initialRegion={{
-          latitude: position.latitude, 
-          longitude: position.longitude, 
+          latitude: Number(position?.latitude), 
+          longitude: Number(position?.longitude), 
           latitudeDelta: 0.05, 
           longitudeDelta: 0.05,
         }}

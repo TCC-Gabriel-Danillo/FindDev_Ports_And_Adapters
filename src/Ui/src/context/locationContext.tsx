@@ -1,31 +1,44 @@
 import { Position } from "@domain/entities"
-import { createContext, useState, useEffect } from "react"
+import { createContext } from "react"
 import * as Location from 'expo-location';
+import { useState, useEffect } from "react";
 
+interface ILocationContext {
+    getPositionAsync: () => Promise<Position>
+    position: Position
+}
 
-export const LocationContext = createContext<Position>({} as Position)
+export const LocationContext = createContext<ILocationContext>({} as ILocationContext)
 
 interface Props {
     children: JSX.Element
 }
 export function LocationContextProvider({ children }:Props){
-    const [position, setPosition] = useState<Position>({} as Position)
+    const [position, setPosistion] = useState<Position>({} as Position)
+    
+    const getPositionAsync = async () => {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') return {
+            latitude: 0,
+            longitude: 0
+        };
 
-    useEffect(() => {
-        (async () => {
-          let { status } = await Location.requestForegroundPermissionsAsync();
-          if (status !== 'granted') return;
+        const location = await Location.getCurrentPositionAsync({});
+        return {
+              latitude: location.coords.latitude, 
+              longitude: location.coords.longitude
+        };
+    }
 
-          const location = await Location.getCurrentPositionAsync({});
-          setPosition({
-                latitude: location.coords.latitude, 
-                longitude: location.coords.longitude
-            });
-        })();
-      }, []);
+    useEffect(()=>{
+        (async()=>{
+            const position = await getPositionAsync() as Position;
+            setPosistion(position);
+        })()
+    },[])
 
     return(
-        <LocationContext.Provider value={position}>
+        <LocationContext.Provider value={{getPositionAsync, position }}>
             {children}
         </LocationContext.Provider>
     )

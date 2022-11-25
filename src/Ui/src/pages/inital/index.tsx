@@ -13,30 +13,33 @@ export const BUTTON_TEST_ID = 'GITHUB_BUTTON_TEST_ID'
 const InitialPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false); 
 
-    const navigation = useNavigation()
+    const { navigate } = useNavigation()
     const { signInWithGithub, isUserAuthenticated, user } = useAuth()
     const { createUser, updateUser } = useUserService()
-    const position = useLocation()
+    const { getPositionAsync } = useLocation()
     
     useEffect(()=>{
-      const isPositionVoid = !!Object.keys(position).length;
-      if(isUserAuthenticated && isPositionVoid && user) {
-        setIsLoading(true);
-        updateUser({...user, position}).then(()=>{
-          navigation.navigate(NavigationPages.map)
-          setIsLoading(false);
-        })
-      }
+      (async () => {
+        const position = await getPositionAsync()
+        if(isUserAuthenticated && position && user) {
+          setIsLoading(true);
+          updateUser({...user, position}).then(()=>{
+            navigate(NavigationPages.map, { position })
+            setIsLoading(false);
+          })
+        }
+      })()
 
-    }, [isUserAuthenticated, position])
+    }, [isUserAuthenticated])
 
     const signIn = async () => {
       setIsLoading(true);
       
       if(!isUserAuthenticated) {
         const userCredentials = await signInWithGithub();
+        const position = await getPositionAsync()
         const isUserAdded  = await createUser(userCredentials, position);
-        if(isUserAdded) navigation.navigate(NavigationPages.map)
+        if(isUserAdded) navigate(NavigationPages.map)
       }
 
       setIsLoading(false);
@@ -49,7 +52,7 @@ const InitialPage: React.FC = () => {
        
         <Image source={devImg} style={{width: 300, height: 300, resizeMode: "contain"}} />
         
-        <Button onPress={signIn} style={styles.button} testID={BUTTON_TEST_ID}>  
+        <Button onPress={signIn} style={styles.button} testID={BUTTON_TEST_ID} disabled={isUserAuthenticated}>  
           {isLoading ? <ActivityIndicator color={WHITE}/> : "Entrar com Github"}
         </Button>
     </View>
