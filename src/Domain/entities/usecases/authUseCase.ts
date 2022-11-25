@@ -22,4 +22,5 @@ export interface AuthUseCase {
   setOAuthToken: (credentials: Credentials) => void;
   getOAuthHeader: () => oAuthHeader;
   getOAuthToken: () => string|undefined;
+  signInWithCredentials: () => Promise<UserCredential>
 }

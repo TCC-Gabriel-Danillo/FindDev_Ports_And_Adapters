@@ -62,7 +62,7 @@ export default function Map() {
                 <Callout onPress={() => handleCalloutPress(user)}>
                   <View style={styles.calloutView}>
                     <View style={styles.calloutImage}>
-                      <Image source={{uri: user.phoroUrl}} style={styles.imageMarker}/>
+                      <Image source={{uri: user.photoUrl}} style={styles.imageMarker}/>
                       <Text fontWeight='bold' style={styles.calloutTitle}>{user.username}</Text>
                     </View>
                     <Text style={styles.calloutContent}>Techs: {user.techs?.join(", ")}</Text>

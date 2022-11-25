@@ -8,6 +8,8 @@ import { WHITE } from '../../constants';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationPages } from '../../navigation/config';
 
+export const BUTTON_TEST_ID = 'GITHUB_BUTTON_TEST_ID'
+
 const InitialPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false); 
 
@@ -47,7 +49,7 @@ const InitialPage: React.FC = () => {
        
         <Image source={devImg} style={{width: 300, height: 300, resizeMode: "contain"}} />
         
-        <Button onPress={signIn} style={styles.button}>  
+        <Button onPress={signIn} style={styles.button} testID={BUTTON_TEST_ID}>  
           {isLoading ? <ActivityIndicator color={WHITE}/> : "Entrar com Github"}
         </Button>
     </View>

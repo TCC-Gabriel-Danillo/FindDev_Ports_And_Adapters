@@ -28,7 +28,7 @@ export class AuthService implements AuthUseCase {
     );
   };
   
-  public signInWithCredentials = () => {
+  public signInWithCredentials = async () => {
     const token = this.getOAuthToken() || ''
     return this.authRepository.signInWithCredentials(token);
   }

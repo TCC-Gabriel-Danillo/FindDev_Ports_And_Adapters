@@ -5,17 +5,16 @@ import {
   STORAGE_KEYS,
 } from "../constants";
 import * as WebBrowser from "expo-web-browser";
-import { AuthService } from "@domain/services";
-import { User, UserCredential } from "@domain/entities";
+import { AuthUseCase, User, UserCredential } from "@domain/entities";
 import { LocalStorageRepository } from "@domain/repositories";
 import { useAuthRequestType, usePersistentState } from "../hooks";
 
 
 WebBrowser.maybeCompleteAuthSession();
 
-interface AuthContextProviderProps {
+export interface AuthContextProviderProps {
   children: JSX.Element;
-  authService: AuthService;
+  authService: AuthUseCase;
   localStorage: LocalStorageRepository;
   promptAsync: () => Promise<useAuthRequestType['response']>
 }
@@ -49,7 +48,7 @@ export const AuthContextProvider = ({
       client_secret: GIT_CLIENT_SECRET,
     };
 
-    await authService.setOAuthToken(oAuthCredentials);
+    authService.setOAuthToken(oAuthCredentials);
     
     return authService.signInWithCredentials();
   }, [promptAsync]);

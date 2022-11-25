@@ -9,7 +9,7 @@ export interface User {
     profileUrl: string 
     position: Position 
     geohash: string
-    phoroUrl?: string 
+    photoUrl?: string 
     email?: string
     techs?: Array<string>
 }
