@@ -5,16 +5,17 @@ import {
   STORAGE_KEYS,
 } from "../constants";
 import * as WebBrowser from "expo-web-browser";
-import { AuthUseCase, User, UserCredential } from "@domain/entities";
+import { AuthService } from "@domain/services";
+import { User, UserCredential } from "@domain/entities";
 import { LocalStorageRepository } from "@domain/repositories";
 import { useAuthRequestType, usePersistentState } from "../hooks";
 
 
 WebBrowser.maybeCompleteAuthSession();
 
-export interface AuthContextProviderProps {
-  children?: JSX.Element;
-  authService: AuthUseCase;
+interface AuthContextProviderProps {
+  children: JSX.Element;
+  authService: AuthService;
   localStorage: LocalStorageRepository;
   promptAsync: () => Promise<useAuthRequestType['response']>
 }

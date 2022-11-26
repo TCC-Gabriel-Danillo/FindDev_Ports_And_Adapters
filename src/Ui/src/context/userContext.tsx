@@ -1,4 +1,4 @@
-import { createContext } from "react";
+import { createContext, useState, useEffect } from "react";
 import { Alert } from "react-native";
 import {
   Position,
@@ -17,13 +17,13 @@ interface IUserContext {
   createUser: (
     allowedUser: UserCredential,
     position: Position,
-    ) => Promise<User|undefined>;
+    ) => Promise<boolean>;
   listUsers: (listUserParams: ListUserParams) => Promise<User[]>;
-  updateUser: (user: User) => Promise<User>;
+  updateUser: (user: User) => Promise<void>;
 }
 
-export interface UserContextProps {
-  children?: JSX.Element;
+interface UserContextProps {
+  children: JSX.Element;
   userService: UserUseCase;
   githubApi: HttpRepository;
   localStorage: LocalStorageRepository;
@@ -43,10 +43,11 @@ export function UserContextProvider({
 }: UserContextProps) {
   const { setPersistentState } = usePersistentState(STORAGE_KEYS.USERS, localStorage, {});
 
+
   const createUser = async (
     allowedUser: UserCredential,
     position: Position
-  ): Promise<User|undefined> => {
+  ): Promise<boolean> => {
     try {
       const authHeader = authService.getOAuthHeader();
 
@@ -70,24 +71,25 @@ export function UserContextProvider({
         }
       });
 
-      const newUser = updateUser({
+      updateUser({
         email: allowedUser.user.email || undefined,
         id: user.id,
-        photoUrl: user.avatar_url,
+        phoroUrl: user.avatar_url,
         techs: techs,
         position: position,
         username: user.login,
         profileUrl: user.html_url,
       } as User);
 
-      return newUser;
+      return true;
 
     } catch (error) {
       if (error instanceof Error) Alert.alert(error.message);
+      return false
     }
   };
 
-  const updateUser = async (user: User) => {
+  const updateUser =async (user: User) => {
     const newUser: User = {
       ...user,
       geohash: geohashGenerator(user.position)
@@ -95,7 +97,6 @@ export function UserContextProvider({
 
     setPersistentState(newUser);
     await userService.createUser(newUser);
-    return newUser
   }
 
   const listUsers = async (listUserParams: ListUserParams) => {

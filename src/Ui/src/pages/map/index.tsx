@@ -12,18 +12,13 @@ import { NavigationPages } from '../../navigation/config';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { WHITE } from '../../constants';
 
-export const MAP_TEST_ID = 'MAP_TEST_ID'
-export const MARKER_TEST_ID = 'MARKER_TEST_ID'
-export const LOGOUT_BUTTON_TEST_ID = 'BUTTON_TEST_ID'
-export const CALLOUT_TEST_ID = 'CALLOUT_TEST_ID'
-
 export default function Map() {
   const [ mapPosition, setMapPosition ] = useState<Position | undefined>(undefined)
 
-  const { navigate } = useNavigation()
-  const { position } = useLocation()
+  const navigation = useNavigation()
   const { listUsers } = useUserService()
   const { signOut } = useAuth()
+  const position = useLocation()
 
   const { users } = useFilterUsers({position: mapPosition || position, callback: listUsers})
   
@@ -33,20 +28,19 @@ export default function Map() {
 
   const signOutUser = () => {
     signOut();
-    navigate(NavigationPages.inital)
+    navigation.navigate(NavigationPages.inital)
   }
 
   return (
     <View style={styles.container}>
       <MapView style={styles.map}
-        testID={MAP_TEST_ID}
         onRegionChangeComplete={(e:Position) => {
           const {latitude, longitude} = e
           setMapPosition({latitude, longitude})
         }}
         initialRegion={{
-          latitude: Number(position?.latitude), 
-          longitude: Number(position?.longitude), 
+          latitude: position.latitude, 
+          longitude: position.longitude, 
           latitudeDelta: 0.05, 
           longitudeDelta: 0.05,
         }}
@@ -57,7 +51,6 @@ export default function Map() {
           users.map(user => {
             return(
               <Marker 
-                testID={`${MARKER_TEST_ID}_${user.id}`}
                 key={user.id} 
                 coordinate={{
                   latitude: user.position.latitude, 
@@ -69,7 +62,7 @@ export default function Map() {
                 <Callout onPress={() => handleCalloutPress(user)}>
                   <View style={styles.calloutView}>
                     <View style={styles.calloutImage}>
-                      <Image source={{uri: user.photoUrl}} style={styles.imageMarker}/>
+                      <Image source={{uri: user.phoroUrl}} style={styles.imageMarker}/>
                       <Text fontWeight='bold' style={styles.calloutTitle}>{user.username}</Text>
                     </View>
                     <Text style={styles.calloutContent}>Techs: {user.techs?.join(", ")}</Text>
@@ -81,7 +74,7 @@ export default function Map() {
           })
         }
       </MapView>
-      <Button onPress={signOutUser} style={styles.logoutButton} testID={LOGOUT_BUTTON_TEST_ID}>
+      <Button onPress={signOutUser} style={styles.logoutButton}>
         <Ionicons name="md-log-out" size={32} color={WHITE} />
       </Button>
     </View>

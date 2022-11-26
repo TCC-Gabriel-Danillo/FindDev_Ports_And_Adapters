@@ -1,16 +1,17 @@
 import { ReactNode } from 'react';
-import { TouchableOpacity, TouchableOpacityProps, ViewStyle } from 'react-native';
+import { TouchableOpacity, ViewStyle } from 'react-native';
 import { Text } from "../text"
 import { styles } from "./styles"
 
-interface Props extends TouchableOpacityProps {
+interface Props {
     children: ReactNode
+    onPress: () => void
     style?: ViewStyle
 }
 
-export const Button: React.FC<Props> = ({ children, style, ...rest }) => {
+export const Button: React.FC<Props> = ({ children, onPress, style }) => {
   return(
-    <TouchableOpacity {...rest} style={[styles.button, style]}>
+    <TouchableOpacity style={[styles.button, style]} onPress={onPress}>
         <Text fontWeight='semibold' style={styles.buttonText}>
             {children}
         </Text>
