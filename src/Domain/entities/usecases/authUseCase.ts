@@ -19,7 +19,8 @@ type oAuthHeader = {
 };
 
 export interface AuthUseCase {
-  setOAuthToken: (credentials: Credentials) => void;
+  setOAuthToken: (credentials: Credentials) => Promise<void>;
   getOAuthHeader: () => oAuthHeader;
   getOAuthToken: () => string|undefined;
+  signInWithCredentials: () => Promise<UserCredential>
 }
