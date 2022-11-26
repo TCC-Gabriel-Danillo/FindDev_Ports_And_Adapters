@@ -6,10 +6,11 @@ import {
   AuthContextProviderProps,
 } from "../../../context";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
-import { Routes } from "../../../navigation";
-import { BUTTON_TEST_ID } from "../../../pages/inital";
+import InitialPage, { BUTTON_TEST_ID } from "../../../pages/inital";
 import { act } from "react-test-renderer";
-import { authContexDefaultProps, LocalStorageStub, POSITION, userContexDefaultProps, UserServiceStub, UserStub } from "./Stubs";
+import { userContexProps, authContexProps, POSITION, GEOHASH, USER_EMAIL, USERNAME, USER_ID, GitRepositoryStub, PHOTO_URL, PROFILE_URL } from "../Stubs";
+import { NavigationContainer } from "@react-navigation/native";
+import { STORAGE_KEYS } from "../../../constants";
 
 // MOCKS
 
@@ -29,29 +30,38 @@ beforeEach(() => {
 // Functions
 
 const renderComponent = (
-  authContextProps: Omit<AuthContextProviderProps, "children">,
-  userContextProps: Omit<UserContextProps, "children">
+  authContextProps: AuthContextProviderProps,
+  userContextProps: UserContextProps
 ) => {
   return (
     <AuthContextProvider {...authContextProps}>
       <UserContextProvider {...userContextProps}>
-        <Routes />
+        <NavigationContainer>
+          <InitialPage/>
+        </NavigationContainer>
       </UserContextProvider>
     </AuthContextProvider>
   );
 };
 
+// Final Values
+
+const UserFinalValue = {
+  geohash: GEOHASH,
+  email: USER_EMAIL,
+  username: USERNAME,
+  id: USER_ID,
+  techs: GitRepositoryStub.map((tech) => tech.language),
+  photoUrl: PHOTO_URL,
+  profileUrl: PROFILE_URL,
+  position: POSITION,
+};
+
 describe("Initial Page", () => {
   it("Must create user if User does not exist", async () => {
-    jest.mock("@react-navigation/native", () => ({
-      ...jest.requireActual("@react-navigation/native"),
-      useNavigation: () => ({
-        navigate: jest.fn(),
-      }),
-    }));
 
     const { findByTestId } = render(
-      renderComponent(authContexDefaultProps, userContexDefaultProps)
+      renderComponent(authContexProps, userContexProps)
     );
 
     const button = await findByTestId(BUTTON_TEST_ID);
@@ -60,30 +70,27 @@ describe("Initial Page", () => {
       fireEvent.press(button);
     });
 
-    expect(UserServiceStub.createUser).toBeCalledWith(UserStub);
+    expect(userContexProps.userService.createUser).toBeCalledWith(UserFinalValue);
   });
 
   it("Must update user if User exist", async () => {
-    const localStorage = {
-      ...LocalStorageStub,
-      getItem: jest.fn(async () => UserStub),
-    };
+    const genericKey = "genericKey"
+    const position = {
+      latitude: 10,
+      longitude: 10,
+    }
 
-    const _authContexDefaultProps = {
-      ...authContexDefaultProps,
-      localStorage,
-    } as Omit<AuthContextProviderProps, "children">;
+    await authContexProps.localStorage.setItem(genericKey,{...UserFinalValue, position})
 
-    const _userContexDefaultProps = {
-      ...userContexDefaultProps,
-      localStorage,
-    } as Omit<UserContextProps, "children">;
+    await waitFor(() => render(renderComponent(authContexProps, userContexProps)));
+
+    expect(userContexProps.userService.createUser).toBeCalledWith(UserFinalValue);
+  });
+
+  it("Must save user as soon as it's authenticated", async () => {
+
+    await waitFor(() => render(renderComponent(authContexProps, userContexProps)));
+    expect(userContexProps.localStorage.setItem).toBeCalledWith(STORAGE_KEYS.USERS, UserFinalValue);
     
-    
-    await waitFor(() => {
-      render(renderComponent(_authContexDefaultProps, _userContexDefaultProps));
-    });
-
-    expect(UserServiceStub.createUser).toBeCalledWith(UserStub);
   });
 });

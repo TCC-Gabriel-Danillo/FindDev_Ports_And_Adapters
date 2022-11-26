@@ -23,7 +23,7 @@ interface IUserContext {
 }
 
 export interface UserContextProps {
-  children: JSX.Element;
+  children?: JSX.Element;
   userService: UserUseCase;
   githubApi: HttpRepository;
   localStorage: LocalStorageRepository;

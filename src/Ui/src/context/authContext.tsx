@@ -13,7 +13,7 @@ import { useAuthRequestType, usePersistentState } from "../hooks";
 WebBrowser.maybeCompleteAuthSession();
 
 export interface AuthContextProviderProps {
-  children: JSX.Element;
+  children?: JSX.Element;
   authService: AuthUseCase;
   localStorage: LocalStorageRepository;
   promptAsync: () => Promise<useAuthRequestType['response']>

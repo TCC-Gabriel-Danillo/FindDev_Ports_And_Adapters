@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState } from 'react';
+import React, { useState } from 'react';
 import MapView, { Marker, Callout } from 'react-native-maps';
 import { Image, View } from 'react-native';
 import { useLocation, useUserService, useFilterUsers, useAuth } from '../../hooks';
@@ -12,10 +12,15 @@ import { NavigationPages } from '../../navigation/config';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { WHITE } from '../../constants';
 
+export const MAP_TEST_ID = 'MAP_TEST_ID'
+export const MARKER_TEST_ID = 'MARKER_TEST_ID'
+export const LOGOUT_BUTTON_TEST_ID = 'BUTTON_TEST_ID'
+export const CALLOUT_TEST_ID = 'CALLOUT_TEST_ID'
+
 export default function Map() {
   const [ mapPosition, setMapPosition ] = useState<Position | undefined>(undefined)
 
-  const {navigate} = useNavigation()
+  const { navigate } = useNavigation()
   const { position } = useLocation()
   const { listUsers } = useUserService()
   const { signOut } = useAuth()
@@ -34,6 +39,7 @@ export default function Map() {
   return (
     <View style={styles.container}>
       <MapView style={styles.map}
+        testID={MAP_TEST_ID}
         onRegionChangeComplete={(e:Position) => {
           const {latitude, longitude} = e
           setMapPosition({latitude, longitude})
@@ -51,6 +57,7 @@ export default function Map() {
           users.map(user => {
             return(
               <Marker 
+                testID={`${MARKER_TEST_ID}_${user.id}`}
                 key={user.id} 
                 coordinate={{
                   latitude: user.position.latitude, 
@@ -74,7 +81,7 @@ export default function Map() {
           })
         }
       </MapView>
-      <Button onPress={signOutUser} style={styles.logoutButton}>
+      <Button onPress={signOutUser} style={styles.logoutButton} testID={LOGOUT_BUTTON_TEST_ID}>
         <Ionicons name="md-log-out" size={32} color={WHITE} />
       </Button>
     </View>
