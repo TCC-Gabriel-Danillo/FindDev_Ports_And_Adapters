@@ -1,5 +1,7 @@
 # FindDev
 
+[![codecov](https://codecov.io/gh/TCC-Gabriel-Danillo/FindDev_Ports_And_Adapters/branch/main/graph/badge.svg?token=7OHIEU88ME)](https://codecov.io/gh/TCC-Gabriel-Danillo/FindDev_Ports_And_Adapters)
+
 ### Encontre incríveis desenvolvedores próximos a você. 
 
 Esse é um aplicativo destinado para comunidade de desenvolvedores encontrar outros desenvolvedores próximos. 
