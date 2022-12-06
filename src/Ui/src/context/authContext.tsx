@@ -1,4 +1,4 @@
-import { createContext, useCallback } from "react";
+import React, { createContext, useCallback } from "react";
 import {
   GIT_CLIENT_ID,
   GIT_CLIENT_SECRET,
@@ -7,7 +7,7 @@ import {
 import * as WebBrowser from "expo-web-browser";
 import { AuthUseCase, User, UserCredential } from "@domain/entities";
 import { LocalStorageRepository } from "@domain/repositories";
-import { useAuthRequestType, usePersistentState } from "../hooks";
+import { AuthRequestType, usePersistentState } from "../hooks";
 
 
 WebBrowser.maybeCompleteAuthSession();
@@ -16,7 +16,7 @@ export interface AuthContextProviderProps {
   children?: JSX.Element;
   authService: AuthUseCase;
   localStorage: LocalStorageRepository;
-  promptAsync: () => Promise<useAuthRequestType['response']>
+  promptAsync: () => Promise<AuthRequestType['response']>
 }
 
 interface IAuthContext {
