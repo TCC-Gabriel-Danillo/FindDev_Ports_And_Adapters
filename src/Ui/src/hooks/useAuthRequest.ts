@@ -7,13 +7,13 @@ const discovery = {
   revocationEndpoint: GIT_REVOCATION_ENDPOINT,
 };
 
-export interface useAuthRequestType {
+export interface AuthRequestType {
   request: AuthRequest | null, 
   response: AuthSessionResult | null, 
   promptAsync: () => Promise<AuthSessionResult>
 }
 
-export const useAuthRequest = (): useAuthRequestType => {
+export const useAuthRequest = (): AuthRequestType => {
 
   const [request, response, promptAsync] = useAuthRequestFirebase(
     {

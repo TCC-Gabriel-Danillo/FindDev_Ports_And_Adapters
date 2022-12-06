@@ -1,7 +1,6 @@
-import { Position } from "@domain/entities"
-import { createContext } from "react"
+import React, { createContext, useState, useEffect} from "react"
 import * as Location from 'expo-location';
-import { useState, useEffect } from "react";
+import { Position } from "@domain/entities"
 
 interface ILocationContext {
     getPositionAsync: () => Promise<Position>

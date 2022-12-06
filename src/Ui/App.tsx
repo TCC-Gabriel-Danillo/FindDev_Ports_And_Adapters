@@ -1,5 +1,4 @@
-import React from "react"
-import { useCallback } from "react"
+import React, { useCallback } from "react"
 import { StatusBar, View } from "react-native"
 import "./src/config/firebaseConfig"
 import { Routes } from "./src/navigation"

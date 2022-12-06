@@ -71,7 +71,7 @@ class LocalStorageMock implements LocalStorageRepository {
     this.value = {}
   });
 
-  getItem = jest.fn(async () => Promise.resolve<any>(this.value as any));
+  getItem = jest.fn(async () => Promise.resolve<any>(this.value));
 };
 
 class UserServiceStub implements UserUseCase {
