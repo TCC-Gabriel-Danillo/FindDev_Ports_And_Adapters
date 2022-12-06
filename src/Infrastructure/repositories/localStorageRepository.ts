@@ -1,5 +1,5 @@
-import { LocalStorageRepository } from "../../domain/repositories";
-import AsyncStorage from "../../ui/node_modules/@react-native-async-storage/async-storage";
+import { LocalStorageRepository } from "@domain/repositories";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export class LocalStorageImp implements LocalStorageRepository {
   async getItem<T>(key: string): Promise<T | undefined> {

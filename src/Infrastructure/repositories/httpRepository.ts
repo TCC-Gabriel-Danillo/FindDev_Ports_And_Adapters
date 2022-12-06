@@ -1,5 +1,5 @@
 
-import { HttpRepository } from "../../domain/repositories";
+import { HttpRepository } from "@domain/repositories";
 import axios, { AxiosInstance, AxiosError } from "axios"; 
 import { NotFoundError, ServerError } from "../erros/http"
 

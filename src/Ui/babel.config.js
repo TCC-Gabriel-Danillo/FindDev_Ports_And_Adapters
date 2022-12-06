@@ -1,23 +1,25 @@
-module.exports = function(api) {
+module.exports = function (api) {
   api.cache(true);
   return {
-    presets: ['babel-preset-expo'],
+    presets: ["babel-preset-expo"],
     plugins: [
       [
-        'module-resolver',
+        "module-resolver",
         {
           alias: {
-            '@domain': '../domain',
-            '@infrastructure': '../infrastructure',
+            "@domain": "../domain",
+            "@infrastructure": "../infrastructure",
+            "@ui": "../ui",
           },
         },
       ],
       [
-        "module:react-native-dotenv", {
-            "moduleName": "react-native-dotenv",
-            "path": ".env"
-        }
+        "module:react-native-dotenv",
+        {
+          moduleName: "react-native-dotenv",
+          path: ".env",
+        },
+      ],
     ],
-   ],
   };
 };

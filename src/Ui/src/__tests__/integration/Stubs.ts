@@ -1,8 +1,8 @@
-import { AuthUseCase, Credentials, Position, User, UserCredential, UserUseCase } from "@domain/entities";
-import { HttpRepository, LocalStorageRepository } from "@domain/repositories";
+import { AuthUseCase, Position, User, UserCredential, UserUseCase } from "@domain/entities";
+import { LocalStorageRepository } from "@domain/repositories";
 import { GitRepository, GitUser } from "@infrastructure/dto";
 import { HttpRepositoryImp } from "@infrastructure/repositories";
-import { GITHUB_URL } from "src/constants";
+import { AxiosInstance } from "axios";
 import { AuthContextProviderProps, UserContextProps } from "src/context";
 
 export const FAKE_TOKEN = "github_fake_token";
@@ -63,7 +63,7 @@ export const GitRepositoryStub = [
 class LocalStorageMock implements LocalStorageRepository {
   private value: any = {}
 
-  setItem = jest.fn(async (key:string, value: any) => {
+  setItem = jest.fn(async (_:string, value: any) => {
     this.value = value
   });
 
@@ -86,7 +86,7 @@ class UserServiceStub implements UserUseCase {
 } ;
 
 class GithubApiStub implements HttpRepositoryImp {
-  api = jest.fn()
+  api = jest.fn() as unknown as AxiosInstance
 
   async get<T>(endpoint: string) {
     if(endpoint.includes('/search/users')) return Promise.resolve<T>(GithubUserStub as T);

@@ -1,4 +1,4 @@
-import { UserCredential as UserCredentialGithub } from "../../../ui/node_modules/@firebase/auth";
+import { UserCredential as UserCredentialGithub } from "firebase/auth";
 
 export interface UserCredential extends UserCredentialGithub {}
 

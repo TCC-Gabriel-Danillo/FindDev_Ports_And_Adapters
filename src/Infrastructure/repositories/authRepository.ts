@@ -1,5 +1,5 @@
-import { GithubAuthProvider, getAuth, signInWithCredential } from "../../ui/node_modules/@firebase/auth";
-import { AuthRepository } from "../../domain/repositories/authRepository";
+import { GithubAuthProvider, getAuth, signInWithCredential } from "firebase/auth";
+import { AuthRepository } from "@domain/repositories/authRepository";
 
 export class AuthRepositoryImp implements AuthRepository {
   signInWithCredentials(token: string) {

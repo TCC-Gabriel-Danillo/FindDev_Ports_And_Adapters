@@ -1,5 +1,5 @@
-import { ListUserParams, User } from "../../domain/entities/models";
-import { UserRepository } from "../../domain/repositories";
+import { ListUserParams, User } from "@domain/entities/models";
+import { UserRepository } from "@domain/repositories";
 import { getFirestore, setDoc, doc, Firestore, getDoc, collection, query, getDocs, orderBy, startAt, endAt } from 'firebase/firestore';
 
 
